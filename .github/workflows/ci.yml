@@ -1,0 +1,31 @@
+on: [push, pull_request]
+name: CI
+jobs:
+  build:
+    name: "Build on Racket '${{ matrix.racket-version }}' (${{ matrix.racket-variant }})"
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental || false }}
+    strategy:
+      fail-fast: false
+      matrix:
+        racket-version: ["stable", "current"]
+        racket-variant: ["BC", "CS"]
+        include:
+          - racket-version: current
+            experimental: true
+    steps:
+      - uses: actions/checkout@v3.1.0
+      - uses: Bogdanp/setup-racket@v1.9.1
+        with:
+          architecture: x64
+          distribution: full
+          variant: ${{ matrix.racket-variant }}
+          version: ${{ matrix.racket-version }}
+      - name: Installing cabin-mixer and its dependencies
+        run: make install
+      - name: Compiling cabin-mixer and building its docs
+        run: make check-deps RACO_SETUP_ARGS=--unused-pkg-deps
+      - name: Install xvfb to run headless tests
+        run: sudo apt-get install xvfb
+      - name: Testing cabin-mixer
+        run: xvfb-run make test RACO_TEST_ARGS=--no-run-if-absent

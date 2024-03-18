@@ -1,0 +1,14 @@
+*~
+\#*
+.\#*
+.DS_Store
+compiled/
+/doc/
+/docs/
+/CabinMixer.app/
+/macOS-CabinMixer/
+/linux-CabinMixer/
+/windows-CabinMixer/
+macOS-CabinMixer.tar.gz
+linux-CabinMixer.tar.gz
+windows-CabinMixer.zip
