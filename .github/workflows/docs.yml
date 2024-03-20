@@ -26,7 +26,7 @@ jobs:
       - name: Build docs
         run: make docs/cabin-mixer/index.html
       - name: Push to GH Pages
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
           folder: docs/cabin-mixer
           branch: gh-pages
