@@ -5,7 +5,11 @@
 (define racket-launcher-libraries '("gui/mixer"))
 (define gracket-launcher-names '("CabinMixer"))
 (define gracket-launcher-libraries '("gui/mixer"))
-(define deps '("graphite-lib"
+(define deps '("data-frame"
+               "frosthaven-manager"
+               "pict-lib"
+               "plot-gui-lib"
+               "plot-lib"
                "gui-easy-lib"
                "qi-lib"
                "sawzall-lib"
