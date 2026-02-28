@@ -6,7 +6,7 @@
 (define gracket-launcher-names '("CabinMixer"))
 (define gracket-launcher-libraries '("gui/mixer"))
 (define deps '("data-frame"
-               "frosthaven-manager"
+               "https://github.com/benknoble/frosthaven-manager.git"
                "pict-lib"
                "plot-gui-lib"
                "plot-lib"
