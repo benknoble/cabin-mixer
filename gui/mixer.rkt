@@ -3,14 +3,13 @@
 (module+ main
   (require racket/gui/easy/debugger
            (prefix-in dbg: debugging/server))
-  (define data
+  (define data-file
     (command-line
      #:once-each
      [("--debug") "Enable debugging"
                   (start-debugger)
                   (dbg:serve)]
-     #:args (data-csv-file)
-     (df-read/csv data-csv-file)))
+     #:args (data-csv-file) data-csv-file))
   ;; (delete-current-assignments! data)
   (define has-fs-change?
     (match (system-type 'fs-change)
@@ -25,6 +24,10 @@
          (text "To update charts displayed by Cabin Mixer, use 'File' > 'Open' and choose a data file.")
          (button "Confirm" (thunk (close!)))))
        #f]))
+  (define-values (@data fsc-data)
+    (cond
+      [has-fs-change? (values (@ (read-file data-file)) #f)]
+      [else (values (@ (read-file data-file)) #f)]))
   (define error-logs
     (cond
       [(terminal-port? (current-error-port))
@@ -32,12 +35,20 @@
        (current-error-port (open-output-file temp #:exists 'truncate #:mode 'text))
        temp]
       [else #f]))
-  (void (render (mixer data error-logs))))
+  (void (render (mixer @data error-logs
+                       #:open-data-file
+                       (λ (file)
+                         (cond
+                           [has-fs-change?
+                            (:= @data (read-file file))
+                            (restart-fs-change fsc-data file)]
+                           [else (:= @data (read-file file))]))))))
 
 (require cabin-mixer/gui/common-menu
          racket/gui/easy
          frosthaven-manager/curlique
          frosthaven-manager/observable-operator
+         frosthaven-manager/files
          frosthaven-manager/gui/mixins
          sawzall
          plot
@@ -60,8 +71,9 @@
  Maybe "field toggles" should be a "preferences" window?
 
 |#
-(define (mixer data error-logs)
-  (define/obs @chart (match (df-series-names data)
+(define (mixer @data error-logs
+               #:open-data-file open-data-file)
+  (define/obs @chart (match (df-series-names (@! @data))
                        [(cons x _) x]
                        [_ #f]))
   (define/obs @style 'count)
@@ -71,9 +83,15 @@
    #:mixin closing-mixin
    (menu-bar
     (menu "File"
-          (menu-item "&New Window" (thunk (void (render (mixer data error-logs))))
+          (menu-item "&New Window" (thunk (void (render (mixer @data error-logs #:open-data-file open-data-file))))
                      #:shortcut (list modifier #\n))
-          (menu-item "&Open Data" (thunk (raise "not implemented yet"))
+          (menu-item "&Open Data" (thunk
+                                   (open-data-file
+                                    (get-file/filter
+                                     "Data file"
+                                     ;; TODO: hook in common Excel formats
+                                     ;; "*.csv;*.xlsx;*.xls"
+                                     '("CSV" "*.csv"))))
                      #:shortcut (list modifier #\o))
           (menu-item "Close &Window" (thunk (close!))
                      #:shortcut (list modifier #\w))
@@ -96,15 +114,13 @@
            (λ (new-choice)
              (:= @style (or new-choice 'count))))
    (tabs
-    (df-series-names data)
+    (@> @data df-series-names)
     (λ (e _choices current)
       (case e [(select) (:= @chart current)]))
     (observable-view
-     ;; NB data may be observable here, too. Should probably use a single
-     ;; @state or obs-combine them here
-     (obs-combine vector @chart @style)
+     (obs-combine vector @data @chart @style)
      (match-lambda
-       [(vector chart style)
+       [(vector data chart style)
         (cond
           [chart
            (snip
@@ -143,6 +159,15 @@
                #:height h
                (stacked-histogram chart-data #:labels the-labels)))))]
           [else (text "Please select a chart from the list of tabs.")])])))))
+
+(define (read-file file)
+  (df-read/csv file))
+
+(define (start-fs-change _file)
+  #f)
+
+(define (restart-fs-change _fsc-data _file)
+  #f)
 
 (define (delete-current-assignments! df)
   (for ([series (df-series-names df)]
