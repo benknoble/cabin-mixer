@@ -16,7 +16,9 @@
    Maybe "field toggles" should be a "preferences" window?
 
   |#
-  (define/obs @chart #f)
+  (define/obs @chart (match (df-series-names data)
+                       [(cons x _) x]
+                       [_ #f]))
   (define/obs @style 'count)
   (plot-pen-color-map 'tab20)
   (plot-brush-color-map 'tab20)
