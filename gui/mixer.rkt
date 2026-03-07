@@ -1,8 +1,14 @@
 #lang racket
 
 (module+ main
+  (require racket/gui/easy/debugger
+           (prefix-in dbg: debugging/server))
   (define data
     (command-line
+     #:once-each
+     [("--debug") "Enable debugging"
+                  (start-debugger)
+                  (dbg:serve)]
      #:args (data-csv-file)
      (df-read/csv data-csv-file)))
   ;; (delete-current-assignments! data)
