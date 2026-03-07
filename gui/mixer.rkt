@@ -76,7 +76,7 @@
                  #:width w
                  #:height h
                  (stacked-histogram chart-data #:labels the-labels))))]
-            [else (text "No chart selected")])])))))))
+            [else (text "Please select a chart from the list of tabs.")])])))))))
 
 (require racket/gui/easy
          frosthaven-manager/curlique
