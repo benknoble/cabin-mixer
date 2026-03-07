@@ -25,9 +25,9 @@
   (void (render (mixer data))))
 
 (require racket/gui/easy
-         racket/gui/base
          frosthaven-manager/curlique
          frosthaven-manager/observable-operator
+         frosthaven-manager/gui/mixins
          sawzall
          plot
          plot/snip
@@ -44,15 +44,19 @@
                        [(cons x _) x]
                        [_ #f]))
   (define/obs @style 'count)
+  (define-close! close! closing-mixin)
   (window
    #:title "Cabin Mixer"
+   #:mixin closing-mixin
    (menu-bar
     (menu "File"
           (menu-item "&New Window" (thunk (void (render (mixer data))))
                      #:shortcut (list modifier #\n))
           (menu-item "&Open Data" (thunk (raise "not implemented yet"))
                      #:shortcut (list modifier #\o))
-          (menu-item "&Quit" (thunk ((application-quit-handler)))
+          (menu-item "Close &Window" (thunk (close!))
+                     #:shortcut (list modifier #\w))
+          (menu-item "&Quit" (thunk (exit 0))
                      #:shortcut (list modifier #\q)))
     (menu "Debug")
     (menu "Help"))
