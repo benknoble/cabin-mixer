@@ -12,16 +12,6 @@
      #:args (data-csv-file)
      (df-read/csv data-csv-file)))
   ;; (delete-current-assignments! data)
-  #|
-
-   Chart | discovered
-  -------| fields
-   Table | toggles
-
-   Maybe assignment table should be separate window?
-   Maybe "field toggles" should be a "preferences" window?
-
-  |#
   (define has-fs-change?
     (match (system-type 'fs-change)
       [(vector 'supported _ _ _) #t]
@@ -60,6 +50,16 @@
     [(macosx) 'cmd]
     [else 'ctl]))
 
+#|
+
+ Chart | discovered
+-------| fields
+ Table | toggles
+
+ Maybe assignment table should be separate window?
+ Maybe "field toggles" should be a "preferences" window?
+
+|#
 (define (mixer data error-logs)
   (define/obs @chart (match (df-series-names data)
                        [(cons x _) x]
