@@ -26,7 +26,8 @@
        #f]))
   (define-values (@data fsc-data)
     (cond
-      [has-fs-change? (values (@ (read-file data-file)) #f)]
+      [has-fs-change? (define fsc-data (start-fs-change data-file))
+                      (values (fs-change-@data fsc-data) fsc-data)]
       [else (values (@ (read-file data-file)) #f)]))
   (define error-logs
     (cond
@@ -38,11 +39,10 @@
   (void (render (mixer @data error-logs
                        #:open-data-file
                        (λ (file)
-                         (cond
-                           [has-fs-change?
-                            (:= @data (read-file file))
-                            (restart-fs-change fsc-data file)]
-                           [else (:= @data (read-file file))]))))))
+                         (when file
+                           (:= @data (read-file file))
+                           (when fsc-data
+                             (restart-fs-change fsc-data file))))))))
 
 (require cabin-mixer/gui/common-menu
          racket/gui/easy
@@ -163,11 +163,30 @@
 (define (read-file file)
   (df-read/csv file))
 
-(define (start-fs-change _file)
-  #f)
+(struct fs-change [file thd @data] #:mutable)
 
-(define (restart-fs-change _fsc-data _file)
-  #f)
+(define (start-fs-change file)
+  (define/obs @data (read-file file))
+  (fs-change
+   file
+   (thread (thunk (run-fs-change file @data)))
+   @data))
+
+(define (restart-fs-change fsc-data file)
+  (match-define (fs-change _ thd @data) fsc-data)
+  (kill-thread thd)
+  (set-fs-change-file! fsc-data file)
+  (set-fs-change-thd! fsc-data (thread (thunk (run-fs-change file @data)))))
+
+(define (run-fs-change file @data)
+  (let go ()
+    (sync (filesystem-change-evt file))
+    ;; some editors (Vim) write to a new file and move it into place
+    (let wait-for-file ()
+      (cond
+        [(file-exists? file) (:= @data (read-file file))]
+        [else (wait-for-file)]))
+    (go)))
 
 (define (delete-current-assignments! df)
   (for ([series (df-series-names df)]
