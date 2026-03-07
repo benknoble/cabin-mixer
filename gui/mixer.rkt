@@ -22,9 +22,17 @@
    Maybe "field toggles" should be a "preferences" window?
 
   |#
-  (void (render (mixer data))))
+  (define error-logs
+    (cond
+      [(terminal-port? (current-error-port))
+       (define temp (make-temporary-file "cabin-mixer-~a"))
+       (current-error-port (open-output-file temp #:exists 'truncate #:mode 'text))
+       temp]
+      [else #f]))
+  (void (render (mixer data error-logs))))
 
-(require racket/gui/easy
+(require cabin-mixer/gui/common-menu
+         racket/gui/easy
          frosthaven-manager/curlique
          frosthaven-manager/observable-operator
          frosthaven-manager/gui/mixins
@@ -39,7 +47,7 @@
     [(macosx) 'cmd]
     [else 'ctl]))
 
-(define (mixer data)
+(define (mixer data error-logs)
   (define/obs @chart (match (df-series-names data)
                        [(cons x _) x]
                        [_ #f]))
@@ -50,7 +58,7 @@
    #:mixin closing-mixin
    (menu-bar
     (menu "File"
-          (menu-item "&New Window" (thunk (void (render (mixer data))))
+          (menu-item "&New Window" (thunk (void (render (mixer data error-logs))))
                      #:shortcut (list modifier #\n))
           (menu-item "&Open Data" (thunk (raise "not implemented yet"))
                      #:shortcut (list modifier #\o))
@@ -58,8 +66,16 @@
                      #:shortcut (list modifier #\w))
           (menu-item "&Quit" (thunk (exit 0))
                      #:shortcut (list modifier #\q)))
-    (menu "Debug")
-    (menu "Help"))
+    (menu "Debug"
+          (error-logs-menu-item error-logs))
+    (menu "Help"
+          (about-menu-item)
+          (documentation-menu-item)
+          (menu-item-separator)
+          (send-feedback-menu-item)
+          (issue-menu-item)
+          (feature-menu-item)
+          (contribute-menu-item)))
    (choice '(count proportion)
            #:label "Chart type: "
            #:choice->label {~> ~a string-titlecase}
