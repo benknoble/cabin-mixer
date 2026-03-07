@@ -22,6 +22,19 @@
    Maybe "field toggles" should be a "preferences" window?
 
   |#
+  (define has-fs-change?
+    (match (system-type 'fs-change)
+      [(vector 'supported _ _ _) #t]
+      [_
+       (define-close! close! closing-mixin)
+       (render
+        (dialog
+         #:title "Cabin Mixer"
+         #:mixin closing-mixin
+         (text "Your system does not support reacting to changes in files.")
+         (text "To update charts displayed by Cabin Mixer, use 'File' > 'Open' and choose a data file.")
+         (button "Confirm" (thunk (close!)))))
+       #f]))
   (define error-logs
     (cond
       [(terminal-port? (current-error-port))
