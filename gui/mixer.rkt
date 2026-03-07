@@ -16,8 +16,6 @@
    Maybe "field toggles" should be a "preferences" window?
 
   |#
-  (plot-pen-color-map 'tab20)
-  (plot-brush-color-map 'tab20)
   (void (render (mixer data))))
 
 (require racket/gui/easy
@@ -82,10 +80,12 @@
                      (define counts (second group))
                      (define total (apply + counts))
                      (list cabin (map {(/ total)} counts)))]))
+              (parameterize ([plot-pen-color-map 'tab20]
+                             [plot-brush-color-map 'tab20])
               (plot-snip
                #:width w
                #:height h
-               (stacked-histogram chart-data #:labels the-labels))))]
+               (stacked-histogram chart-data #:labels the-labels)))))]
           [else (text "Please select a chart from the list of tabs.")])])))))
 
 (define (delete-current-assignments! df)
