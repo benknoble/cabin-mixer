@@ -18,8 +18,8 @@
   |#
   (define/obs @chart #f)
   (define/obs @style 'count)
-  (plot-pen-color-map 'set3)
-  (plot-brush-color-map 'set3)
+  (plot-pen-color-map 'tab20)
+  (plot-brush-color-map 'tab20)
   (void
    (render
     (window
