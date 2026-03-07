@@ -32,6 +32,9 @@ fix-deps:
 fix-doc-index:
 	$(RACO) setup $(RACO_SETUP_ARGS) --doc-index --pkgs $(PKG)
 
+clean:
+	$(RACO) setup $(RACO_SETUP_ARGS) --fast-clean --pkgs $(PKG)
+
 docs/cabin-mixer/index.html:
 	scribble +m --redirect-main http://pkg-build.racket-lang.org/doc/ --htmls --dest ./docs ./scribblings/cabin-mixer.scrbl
 
