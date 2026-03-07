@@ -25,6 +25,7 @@
   (void (render (mixer data))))
 
 (require racket/gui/easy
+         racket/gui/base
          frosthaven-manager/curlique
          frosthaven-manager/observable-operator
          sawzall
@@ -33,6 +34,11 @@
          (prefix-in pict: pict)
          data-frame)
 
+(define modifier
+  (case (system-type 'os)
+    [(macosx) 'cmd]
+    [else 'ctl]))
+
 (define (mixer data)
   (define/obs @chart (match (df-series-names data)
                        [(cons x _) x]
@@ -40,6 +46,16 @@
   (define/obs @style 'count)
   (window
    #:title "Cabin Mixer"
+   (menu-bar
+    (menu "File"
+          (menu-item "&New Window" (thunk (void (render (mixer data))))
+                     #:shortcut (list modifier #\n))
+          (menu-item "&Open Data" (thunk (raise "not implemented yet"))
+                     #:shortcut (list modifier #\o))
+          (menu-item "&Quit" (thunk ((application-quit-handler)))
+                     #:shortcut (list modifier #\q)))
+    (menu "Debug")
+    (menu "Help"))
    (choice '(count proportion)
            #:choice->label ~a
            #:selection @style
