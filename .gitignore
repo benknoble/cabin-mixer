@@ -5,6 +5,8 @@
 compiled/
 /doc/
 /docs/
+/CabinMixer
+/CabinMixer.exe
 /CabinMixer.app/
 /macOS-CabinMixer/
 /linux-CabinMixer/
