@@ -57,7 +57,8 @@
     (menu "Debug")
     (menu "Help"))
    (choice '(count proportion)
-           #:choice->label ~a
+           #:label "Chart type: "
+           #:choice->label {~> ~a string-titlecase}
            #:selection @style
            (λ (new-choice)
              (:= @style (or new-choice 'count))))
