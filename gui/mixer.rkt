@@ -9,7 +9,7 @@
      [("--debug") "Enable debugging"
                   (start-debugger)
                   (dbg:serve)]
-     #:args (data-csv-file) data-csv-file))
+     #:args ([data-csv-file #f]) data-csv-file))
   ;; (delete-current-assignments! data)
   (define has-fs-change?
     (match (system-type 'fs-change)
@@ -26,6 +26,8 @@
        #f]))
   (define-values (@data fsc-data)
     (cond
+      [(not data-file) (define/obs @data (make-data-frame))
+                       (values @data (fs-change #f (thread void) @data))]
       [has-fs-change? (define fsc-data (start-fs-change data-file))
                       (values (fs-change-@data fsc-data) fsc-data)]
       [else (values (@ (read-file data-file)) #f)]))
@@ -73,10 +75,22 @@
 |#
 (define (mixer @data error-logs
                #:open-data-file open-data-file)
-  (define/obs @chart (match (df-series-names (@! @data))
-                       [(cons x _) x]
-                       [_ #f]))
+  (define/obs @chart #f)
+  (define (init-@chart!)
+    (define chart (@! @chart))
+    (define names (df-series-names (@! @data)))
+    (unless (and chart (member chart names))
+      (:= @chart
+          (match names
+            [(cons x _) x]
+            [_ #f]))))
+  (init-@chart!)
   (define/obs @style 'count)
+  (define (open-data)
+    ;; TODO: hook in common Excel formats
+    ;; "*.csv;*.xlsx;*.xls"
+    (open-data-file (get-file/filter "Data file" '("CSV" "*.csv")))
+    (init-@chart!))
   (define-close! close! closing-mixin)
   (window
    #:title "Cabin Mixer"
@@ -85,13 +99,7 @@
     (menu "File"
           (menu-item "&New Window" (thunk (void (render (mixer @data error-logs #:open-data-file open-data-file))))
                      #:shortcut (list modifier #\n))
-          (menu-item "&Open Data" (thunk
-                                   (open-data-file
-                                    (get-file/filter
-                                     "Data file"
-                                     ;; TODO: hook in common Excel formats
-                                     ;; "*.csv;*.xlsx;*.xls"
-                                     '("CSV" "*.csv"))))
+          (menu-item "&Open Data" open-data
                      #:shortcut (list modifier #\o))
           (menu-item "Close &Window" (thunk (close!))
                      #:shortcut (list modifier #\w))
@@ -122,6 +130,10 @@
      (match-lambda
        [(vector data chart style)
         (cond
+          [(zero? (length (df-series-names data)))
+           (hpanel
+            #:alignment '(center center)
+            (button "Open data" open-data))]
           [chart
            (snip
             data
