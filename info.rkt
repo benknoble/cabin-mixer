@@ -5,7 +5,9 @@
 (define racket-launcher-libraries '("gui/mixer"))
 (define gracket-launcher-names '("CabinMixer"))
 (define gracket-launcher-libraries '("gui/mixer"))
-(define deps '("net-lib"
+(define deps '("csv-writing"
+               "simple-xlsx"
+               "net-lib"
                "dbg"
                "data-frame"
                "https://github.com/benknoble/frosthaven-manager.git"
