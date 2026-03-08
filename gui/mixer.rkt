@@ -54,8 +54,6 @@
          frosthaven-manager/gui/mixins
          sawzall
          plot
-         plot/snip
-         (prefix-in pict: pict)
          data-frame)
 
 (define modifier
