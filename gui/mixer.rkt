@@ -170,7 +170,10 @@
                #:width w
                #:height h
                (stacked-histogram chart-data #:labels the-labels)))))]
-          [else (text "Please select a chart from the list of tabs.")])])))))
+          [else
+           (hpanel
+            #:alignment '(center center)
+            (text "Please select a chart from the list of tabs."))])])))))
 
 (define (read-file file)
   (df-read/csv file))
