@@ -165,6 +165,12 @@
                 (plot-snip
                  #:width w
                  #:height h
+                 #:x-label "Cabin #"
+                 #:y-label (format "~a by ~a"
+                                   (match style
+                                     ['count "Count"]
+                                     ['proportion "Percentage"])
+                                   chart)
                  (stacked-histogram chart-data #:labels the-labels)))))]
           [else
            (hpanel
