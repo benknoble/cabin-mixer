@@ -162,10 +162,10 @@
                      (list cabin (map {(/ total)} counts)))]))
               (parameterize ([plot-pen-color-map 'tab20]
                              [plot-brush-color-map 'tab20])
-              (plot-snip
-               #:width w
-               #:height h
-               (stacked-histogram chart-data #:labels the-labels)))))]
+                (plot-snip
+                 #:width w
+                 #:height h
+                 (stacked-histogram chart-data #:labels the-labels)))))]
           [else
            (hpanel
             #:alignment '(center center)
