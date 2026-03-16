@@ -52,7 +52,6 @@
          frosthaven-manager/observable-operator
          frosthaven-manager/files
          frosthaven-manager/gui/mixins
-         sawzall
          plot
          data-frame)
 
