@@ -47,6 +47,7 @@
                              (restart-fs-change fsc-data file))))))))
 
 (require cabin-mixer/gui/common-menu
+         cabin-mixer/xlsx
          racket/gui/easy
          frosthaven-manager/curlique
          frosthaven-manager/observable-operator
@@ -84,9 +85,7 @@
   (init-@chart!)
   (define/obs @style 'count)
   (define (open-data)
-    ;; TODO: hook in common Excel formats
-    ;; "*.csv;*.xlsx;*.xls"
-    (open-data-file (get-file/filter "Data file" '("CSV" "*.csv")))
+    (open-data-file (get-file/filter "Data file" '("CSV/Spreadsheet" "*.csv;*.xlsx;*.xls")))
     (init-@chart!))
   (define-close! close! closing-mixin)
   (window
@@ -173,7 +172,26 @@
             (text "Please select a chart from the list of tabs."))])])))))
 
 (define (read-file file)
-  (df-read/csv file))
+  (or
+   (with-handlers ([exn:fail? {#f}])
+     (xlxs->df file))
+   (with-handlers ([exn:fail? {#f}])
+     ;; HMPH! This doesn't fail…
+     ;; nor does the csv->list stuff from csv-reading…
+     ;; so for now, read-file-error will never be seen?
+     (df-read/csv file))
+   (read-file-error)))
+
+(define (read-file-error)
+  (define-close! close! closing-mixin)
+  (render
+   (dialog
+    #:title "Cabin Mixer: Read Error"
+    #:mixin closing-mixin
+    (text "The selected file was unreadable.")
+    (text "Supported file types: CSV, XLSX.")
+    (button "OK" (thunk (close!)))))
+  (make-data-frame))
 
 (struct fs-change [file thd @data] #:mutable)
 
