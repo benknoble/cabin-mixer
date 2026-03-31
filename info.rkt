@@ -5,7 +5,8 @@
 (define racket-launcher-libraries '("gui/mixer"))
 (define gracket-launcher-names '("CabinMixer"))
 (define gracket-launcher-libraries '("gui/mixer"))
-(define deps '("csv-writing"
+(define deps '("gui-lib"
+               "csv-writing"
                "simple-xlsx"
                "net-lib"
                "dbg"

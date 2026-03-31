@@ -38,6 +38,7 @@
        (current-error-port (open-output-file temp #:exists 'truncate #:mode 'text))
        temp]
       [else #f]))
+  (application-about-handler do-about)
   (void (render (mixer @data error-logs
                        #:open-data-file
                        (λ (file)
@@ -49,6 +50,7 @@
 (require cabin-mixer/gui/common-menu
          cabin-mixer/xlsx
          racket/gui/easy
+         (only-in racket/gui application-about-handler)
          frosthaven-manager/curlique
          frosthaven-manager/observable-operator
          frosthaven-manager/files
