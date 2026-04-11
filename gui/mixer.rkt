@@ -76,6 +76,7 @@
 (define (mixer @data error-logs
                #:open-data-file open-data-file)
   (define/obs @chart #f)
+  (define/obs @x-axis #f)
   (define (init-@chart!)
     (define chart (@! @chart))
     (define names (df-series-names (@! @data)))
@@ -84,11 +85,15 @@
           (match names
             [(cons x _) x]
             [_ #f]))))
+  (define (init-@x-axis!)
+    (:= @x-axis "Cabin"))
   (init-@chart!)
+  (init-@x-axis!)
   (define/obs @style 'count)
   (define (open-data)
     (open-data-file (get-file/filter "Data file" '("CSV/Spreadsheet" "*.csv;*.xlsx;*.xls")))
-    (init-@chart!))
+    (init-@chart!)
+    (init-@x-axis!))
   (define-close! close! closing-mixin)
   (window
    #:title "Cabin Mixer"
@@ -127,22 +132,27 @@
             #:label "Y Axis: "
             #:selection @chart
             (λ (new-choice)
-              (:= @chart new-choice))))
+              (:= @chart new-choice)))
+    (choice (@> @data df-series-names)
+            #:label "X Axis: "
+            #:selection @x-axis
+            (λ (new-choice)
+              (:= @x-axis new-choice))))
    (observable-view
-    (obs-combine vector @data @chart @style)
+    (obs-combine vector @data @chart @x-axis @style)
     (match-lambda
-      [(vector data chart style)
+      [(vector data chart x-axis style)
        (cond
          [(zero? (length (df-series-names data)))
           (hpanel
            #:alignment '(center center)
            (button "Open data" open-data))]
-         [chart
+         [(and chart x-axis)
           (snip
            data
            (λ (data w h)
              (define label (add-labels! data chart))
-             (define the-data (~> (data) (df-select* "Cabin" label) vector->list (map vector->list _)))
+             (define the-data (~> (data) (df-select* x-axis label) vector->list (map vector->list _)))
              (define the-labels (~> (data) (df-select label)
                                     vector->list sep set set->list
                                     (sort string<?)))
@@ -172,7 +182,7 @@
                (plot-snip
                 #:width w
                 #:height h
-                #:x-label "Cabin #"
+                #:x-label x-axis
                 #:y-label (format "~a by ~a"
                                   (match style
                                     ['count "Count"]
