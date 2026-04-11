@@ -147,6 +147,7 @@
               (:= @style (or new-choice 'count))))
     (choice (@> @data df-series-names)
             #:label "Y Axis: "
+            #:stretch '(#t #f)
             #:selection @chart
             (λ (new-choice)
               (if (@! @skip-chart-update)
@@ -154,6 +155,7 @@
                   (:= @chart new-choice))))
     (choice (@> @data df-series-names)
             #:label "X Axis: "
+            #:stretch '(#t #f)
             #:selection @x-axis
             (λ (new-choice)
               (if (@! @skip-x-axis-update)
