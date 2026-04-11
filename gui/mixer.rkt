@@ -236,7 +236,3 @@
   (df-add-derived! df label (list series)
                    {~> car (or _ "unknown") ~a})
   label)
-
-(module+ test
-  (require rackunit)
-  (test-equal? "Getting Started" 1 1))
