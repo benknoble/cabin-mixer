@@ -65,9 +65,9 @@
 
 #|
 
- Chart | discovered
--------| fields
- Table | toggles
+ Controls
+----------
+  Table
 
  Maybe assignment table should be separate window?
  Maybe "field toggles" should be a "preferences" window?
