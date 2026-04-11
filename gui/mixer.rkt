@@ -81,10 +81,7 @@
     (define chart (@! @chart))
     (define names (df-series-names (@! @data)))
     (unless (and chart (member chart names))
-      (:= @chart
-          (match names
-            [(cons x _) x]
-            [_ #f]))))
+      (:= @chart (for/first ([name (in-list names)]) name))))
   (define (init-@x-axis!)
     (define x-axis (@! @x-axis))
     (define names (df-series-names (@! @data)))
