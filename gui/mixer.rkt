@@ -86,7 +86,15 @@
             [(cons x _) x]
             [_ #f]))))
   (define (init-@x-axis!)
-    (:= @x-axis "Cabin"))
+    (define x-axis (@! @x-axis))
+    (define names (df-series-names (@! @data)))
+    (unless (and x-axis (member x-axis names))
+      (:= @x-axis
+          (or
+           (for/first ([name (in-list names)]
+                       #:when (regexp-match? #px"^(?i:cabin)$" name))
+             name)
+           (for/first ([name (in-list names)]) name)))))
   (init-@chart!)
   (init-@x-axis!)
   (define/obs @style 'count)
