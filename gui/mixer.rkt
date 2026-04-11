@@ -113,71 +113,76 @@
           (issue-menu-item)
           (feature-menu-item)
           (contribute-menu-item)))
-   (choice '(count proportion)
-           #:label "Chart type: "
-           #:choice->label {~> ~a string-titlecase}
-           #:selection @style
-           (λ (new-choice)
-             (:= @style (or new-choice 'count))))
-   (tabs
-    (@> @data df-series-names)
-    (λ (e _choices current)
-      (case e [(select) (:= @chart current)]))
-    (observable-view
-     (obs-combine vector @data @chart @style)
-     (match-lambda
-       [(vector data chart style)
-        (cond
-          [(zero? (length (df-series-names data)))
-           (hpanel
-            #:alignment '(center center)
-            (button "Open data" open-data))]
-          [chart
-           (snip
-            data
-            (λ (data w h)
-              (define label (add-labels! data chart))
-              (define the-data (~> (data) (df-select* "Cabin" label) vector->list (map vector->list _)))
-              (define the-labels (~> (data) (df-select label)
-                                     vector->list sep set set->list
-                                     (sort string<?)))
-              (define count-data
-                (sort (for/list ([group (group-by first the-data)])
-                        (define cabin (first (first group)))
-                        (define counter
-                          (for/fold ([acc (hash)])
-                                    ([value (map second group)])
-                            (hash-update acc value add1 0)))
-                        (list cabin
-                              (for/list ([label the-labels])
-                                (hash-ref counter label 0))))
-                      string<?
-                      #:key {~> first ~a}))
-              (define chart-data
-                (case style
-                  [(count) count-data]
-                  [(proportion)
-                   (for/list ([group count-data])
-                     (define cabin (first group))
-                     (define counts (second group))
-                     (define total (apply + counts))
-                     (list cabin (map {(/ total)} counts)))]))
-              (parameterize ([plot-pen-color-map 'tab20]
-                             [plot-brush-color-map 'tab20])
-                (plot-snip
-                 #:width w
-                 #:height h
-                 #:x-label "Cabin #"
-                 #:y-label (format "~a by ~a"
-                                   (match style
-                                     ['count "Count"]
-                                     ['proportion "Percentage"])
-                                   chart)
-                 (stacked-histogram chart-data #:labels the-labels)))))]
-          [else
-           (hpanel
-            #:alignment '(center center)
-            (text "Please select a chart from the list of tabs."))])])))))
+   (hpanel
+    #:stretch '(#t #f)
+    #:alignment '(center center)
+    #:spacing 20
+    (choice '(count proportion)
+            #:label "Chart type: "
+            #:choice->label {~> ~a string-titlecase}
+            #:selection @style
+            (λ (new-choice)
+              (:= @style (or new-choice 'count))))
+    (choice (@> @data df-series-names)
+            #:label "Y Axis: "
+            #:selection @chart
+            (λ (new-choice)
+              (:= @chart new-choice))))
+   (observable-view
+    (obs-combine vector @data @chart @style)
+    (match-lambda
+      [(vector data chart style)
+       (cond
+         [(zero? (length (df-series-names data)))
+          (hpanel
+           #:alignment '(center center)
+           (button "Open data" open-data))]
+         [chart
+          (snip
+           data
+           (λ (data w h)
+             (define label (add-labels! data chart))
+             (define the-data (~> (data) (df-select* "Cabin" label) vector->list (map vector->list _)))
+             (define the-labels (~> (data) (df-select label)
+                                    vector->list sep set set->list
+                                    (sort string<?)))
+             (define count-data
+               (sort (for/list ([group (group-by first the-data)])
+                       (define cabin (first (first group)))
+                       (define counter
+                         (for/fold ([acc (hash)])
+                                   ([value (map second group)])
+                           (hash-update acc value add1 0)))
+                       (list cabin
+                             (for/list ([label the-labels])
+                               (hash-ref counter label 0))))
+                     string<?
+                     #:key {~> first ~a}))
+             (define chart-data
+               (case style
+                 [(count) count-data]
+                 [(proportion)
+                  (for/list ([group count-data])
+                    (define cabin (first group))
+                    (define counts (second group))
+                    (define total (apply + counts))
+                    (list cabin (map {(/ total)} counts)))]))
+             (parameterize ([plot-pen-color-map 'tab20]
+                            [plot-brush-color-map 'tab20])
+               (plot-snip
+                #:width w
+                #:height h
+                #:x-label "Cabin #"
+                #:y-label (format "~a by ~a"
+                                  (match style
+                                    ['count "Count"]
+                                    ['proportion "Percentage"])
+                                  chart)
+                (stacked-histogram chart-data #:labels the-labels)))))]
+         [else
+          (hpanel
+           #:alignment '(center center)
+           (text "Please select a chart from the list of tabs."))])]))))
 
 (define (read-file file)
   (or
