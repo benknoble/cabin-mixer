@@ -15,7 +15,6 @@
                "plot-gui-lib"
                "plot-lib"
                "gui-easy-lib"
-               "qi-lib"
                "base"))
 (define build-deps '("scribble-lib" "racket-doc" "rackunit-lib"))
 (define scribblings '(("scribblings/cabin-mixer.scrbl" ())))
