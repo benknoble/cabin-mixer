@@ -77,6 +77,13 @@
                #:open-data-file open-data-file)
   (define/obs @chart #f)
   (define/obs @x-axis #f)
+  ;; When open-data triggers updates to data _and_ these observables, the
+  ;; updates are queued behind the data update, which can end up itself queuing a
+  ;; call (action 0) such as when the data goes from empty to present. That will
+  ;; then queue yet another update to these observables if we don't skip it,
+  ;; since we need our update to win in such a case.
+  (define/obs @skip-chart-update #f)
+  (define/obs @skip-x-axis-update #f)
   (define (init-@chart!)
     (define chart (@! @chart))
     (define names (df-series-names (@! @data)))
@@ -96,9 +103,14 @@
   (init-@x-axis!)
   (define/obs @style 'count)
   (define (open-data)
+    (define current-series (@! (@> @data df-series-names)))
     (open-data-file (get-file/filter "Data file" '("CSV/Spreadsheet" "*.csv;*.xlsx;*.xls")))
     (init-@chart!)
-    (init-@x-axis!))
+    (when (null? current-series)
+      (:= @skip-chart-update #t))
+    (init-@x-axis!)
+    (when (null? current-series)
+      (:= @skip-x-axis-update #t)))
   (define-close! close! closing-mixin)
   (window
    #:title "Cabin Mixer"
@@ -137,12 +149,16 @@
             #:label "Y Axis: "
             #:selection @chart
             (λ (new-choice)
-              (:= @chart new-choice)))
+              (if (@! @skip-chart-update)
+                  (:= @skip-chart-update #f)
+                  (:= @chart new-choice))))
     (choice (@> @data df-series-names)
             #:label "X Axis: "
             #:selection @x-axis
             (λ (new-choice)
-              (:= @x-axis new-choice))))
+              (if (@! @skip-x-axis-update)
+                  (:= @skip-x-axis-update #f)
+                  (:= @x-axis new-choice)))))
    (observable-view
     (obs-combine vector @data @chart @x-axis @style)
     (match-lambda
