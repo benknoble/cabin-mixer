@@ -164,7 +164,13 @@
             (λ (new-choice)
               (if (@! @skip-x-axis-update)
                   (:= @skip-x-axis-update #f)
-                  (:= @x-axis new-choice)))))
+                  (:= @x-axis new-choice))))
+    (button #:stretch '(#f #f)
+            "Swap"
+            (thunk
+             (define tmp (@! @chart))
+             (:= @chart (@! @x-axis))
+             (:= @x-axis tmp))))
    (observable-view
     (obs-combine vector @data @chart @x-axis @style)
     (match-lambda
