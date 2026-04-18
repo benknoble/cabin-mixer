@@ -25,12 +25,16 @@
          (button "Confirm" (thunk (close!)))))
        #f]))
   (define-values (@data fsc-data)
-    (cond
-      [(not data-file) (define/obs @data (make-data-frame))
-                       (values @data (fs-change #f (thread void) @data))]
-      [has-fs-change? (define fsc-data (start-fs-change data-file))
-                      (values (fs-change-@data fsc-data) fsc-data)]
-      [else (values (@ (read-file data-file)) #f)]))
+    (if (not has-fs-change?)
+        (values (if data-file
+                    (@ (read-file data-file))
+                    (make-data-frame))
+                #f)
+        (cond
+          [data-file (define fsc-data (start-fs-change data-file))
+                     (values (fs-change-@data fsc-data) fsc-data)]
+          [else (define/obs @data (make-data-frame))
+                (values @data (fs-change #f (thread void) @data))])))
   (define error-logs
     (cond
       [(terminal-port? (current-error-port))
