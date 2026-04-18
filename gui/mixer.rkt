@@ -258,10 +258,13 @@
   (let go ()
     (sync (filesystem-change-evt file))
     ;; some editors (Vim) write to a new file and move it into place
-    (let wait-for-file ()
+    (let wait-for-file ([delay #| in seconds |# '(1/100 1/10 1/3 1/2 2/3 1)])
       (cond
         [(file-exists? file) (:= @data (read-file file))]
-        [else (wait-for-file)]))
+        ;; skip this event; maybe the file was deleted?
+        [(null? delay) (void)]
+        [else (sleep (car delay))
+              (wait-for-file (cdr delay))]))
     (go)))
 
 (define (delete-current-assignments! df)
